@@ -3,3 +3,5 @@ llama-index
 asyncio
 fastapi[standard]
 arxiv
+python-dotenv
+llama-index-llms-groq
