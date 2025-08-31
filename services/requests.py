@@ -1,4 +1,8 @@
 import arxiv
+import requests
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
 
 def call_arxiv(topic: str) -> str:
   search = arxiv.Search(
@@ -22,3 +26,15 @@ def call_arxiv(topic: str) -> str:
     formatted += f"Link: {r.entry_id}\n\n"
 
   return formatted.strip()
+
+def build_request(topic:str):
+  token = config["NEWSAPIKEY"]
+  url = f"{config["NEWSURL"]}{topic}&apiKey={token}&pageSize=1"
+
+  headers = {
+    'Content-Type': 'application/json'
+  }
+
+  response = requests.get(url,headers=headers)
+  print(response)
+  return response.json()["articles"][0] if response.status_code == 200 else response.text
