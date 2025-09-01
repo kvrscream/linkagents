@@ -5,3 +5,4 @@ fastapi[standard]
 arxiv
 python-dotenv
 llama-index-llms-groq
+requests

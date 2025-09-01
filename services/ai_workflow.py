@@ -2,7 +2,7 @@ from llama_index.llms.ollama import Ollama
 from llama_index.llms.groq import Groq
 from llama_index.core.agent.workflow import FunctionAgent, AgentWorkflow
 from llama_index.core.tools import FunctionTool
-from services.requests import call_arxiv
+from services.requests import call_arxiv, build_request
 from dotenv import dotenv_values
 
 
@@ -17,14 +17,21 @@ arxiv_tool = FunctionTool.from_defaults(
   name="BuscarArtigosArxiv",
   description="Busca artigos no arXiv dados uma palavra-chave. Útil para encontrar artigos científicos.")
 
+news_tools = FunctionTool.from_defaults(
+  fn=build_request,
+  name="BuscaAPINews",
+  description="Busca matérias mais recentes da api da new com o topic enviado."
+)
+
 agente_resume = FunctionAgent(
   name="AgenteResume",
-  description="Este agente é responsável por formatar o artigo em até mil caracteres para postar em uma rede social e retornar em um formato JSON",
+  description="""Este agente é responsável por formatar o artigo para postar em uma 
+    rede social contendo dados como data, link e autor. Além retornar em um formato JSON""",
   llm=llm,
   tools=[],
   streaming=False,
-  state_prompt="""Você é deve ediitar o texto enviado em até 1000 caracteres sem esquecer de citar o autor, deixar em um formato 
-    agradável para redes sociais e retornar no formato JSON o resumo, ano, link e autor do artigo.""",
+  state_prompt="""Você é deve resumir e editar o texto enviado citar data, link e autor, deixar em um formato 
+    agradável para redes sociais e retornar no formato JSON""",
   can_handoff_to=["AgenteBuscador"]
 )
 
@@ -33,10 +40,10 @@ agente_busca = FunctionAgent(
   description="Este agente é responsável por buscar o conteúdo referente ao tópico enviado na internet.",
   llm=llm,
   streaming=False,
-  tools=[arxiv_tool], #podemos criar functions customeizadas e passar aqui como novas ferramentas
+  tools=[news_tools], #podemos criar functions customeizadas e passar aqui como novas ferramentas
   system_prompt="""
-    Você deve pesquisar usando as tools para encontrar artigos referente ao tópico selecionado e 
-    retornar seu conteúdo, autor e link! Envie para o outro agente para deixar bem formatado!
+    Você deve pesquisar usando as tools para encontrar artigos referente ao tópico selecionado! 
+    Passeo o conteúdo para o outro agente para deixar bem formatado!
   """,
   can_handoff_to=["AgenteResume"] #Pode chamar outros agentes aqui
 )
